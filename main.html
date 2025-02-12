@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MRIQC Report Viewer</title>
+    <script>
+        async function loadOptions(file, dropdownId) {
+            const response = await fetch(file);
+            const text = await response.text();
+            const lines = text.split('\n').filter(line => line.trim() !== '');
+            const dropdown = document.getElementById(dropdownId);
+            
+            lines.forEach(line => {
+                const match = line.match(/sub-(\w+)_ses-\d+_task-(\w+)_run-1_bold.html/);
+                if (match) {
+                    const subjectId = match[1];
+                    const taskName = match[2];
+                    const displayText = `${subjectId}_${taskName}`;
+                    
+                    const option = document.createElement("option");
+                    option.value = line;
+                    option.textContent = displayText;
+                    dropdown.appendChild(option);
+                }
+            });
+        }
+        
+        function goToReport() {
+            const failedSelection = document.getElementById("failedDropdown").value;
+            const includedSelection = document.getElementById("includedDropdown").value;
+            const selectedFile = failedSelection || includedSelection;
+            
+            if (selectedFile) {
+                window.location.href = `ds004636/derivatives/mriqc/${selectedFile}`;
+            } else {
+                alert("Please select a report.");
+            }
+        }
+        
+        document.addEventListener("DOMContentLoaded", function() {
+            loadOptions("mriqc_failed/mriqc_failed.txt", "failedDropdown");
+            loadOptions("all_included/all_included.txt", "includedDropdown");
+        });
+    </script>
+</head>
+<body>
+    <h1>MRIQC Report Viewer</h1>
+    <p>If made selection for the failed, it will show that. If not, it will show the included report. </p>
+    <label for="failedDropdown">Failed Reports:</label>
+    <select id="failedDropdown">
+        <option value="">Select a failed report</option>
+    </select>
+    
+    <label for="includedDropdown">Included Reports:</label>
+    <select id="includedDropdown">
+        <option value="">Select an included report</option>
+    </select>
+    
+    <button onclick="goToReport()">Go!</button>
+</body>
+</html>
