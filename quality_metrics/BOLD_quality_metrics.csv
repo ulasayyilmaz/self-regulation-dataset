@@ -1,0 +1,7 @@
+Label,Metric,Low,High,Median
+Ghost to Signal Ratio,gsr_y,0.011,0.199,0.036
+DVARS,dvars_vstd,0.777,1.503,0.984
+Framewise displacement,fd_mean,0.030,0.595,0.089
+Foreground-background energy ratio,fber,574.653,46811.020,10483.188
+Temporal SNR,tsnr,12.884,54.966,37.324
+Signal-to-noise ratio,snr,2.111,4.304,3.266

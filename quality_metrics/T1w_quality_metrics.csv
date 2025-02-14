@@ -1,0 +1,7 @@
+Label,Metric,Low,High,Median
+Artifact detection, qi_1,0.0,0.002,0.0
+Contrast-to-noise ratio,cnr,2.666,4.006,3.397
+Entropy focus criterion,efc,0.446,0.600,0.513
+Foreground-background energy ratio,fber,-1.0,12216.989,3956.549
+Gray matter signal,summary_gm_mean,635.546,700.432,665.494
+Signal-to-noise ratio,snr_total,7.062,10.923,8.922
