@@ -114,3 +114,10 @@ sub-s144_ses-1_task-twoByTwo_run-1_bold.html
 sub-s603_ses-1_task-twoByTwo_run-1_bold.html
 sub-s635_ses-2_task-twoByTwo_run-1_bold.html
 sub-s639_ses-1_task-twoByTwo_run-1_bold.html
+sub-s586_ses-1_task-motorSelectiveStop_run-1_bold.html
+sub-s623_ses-1_task-motorSelectiveStop_run-1_bold.html
+sub-s608_ses-1_task-motorSelectiveStop_run-1_bold.html
+sub-s519_ses-2_task-motorSelectiveStop_run-1_bold.html
+sub-s549_ses-1_task-motorSelectiveStop_run-1_bold.html
+sub-s577_ses-2_task-motorSelectiveStop_run-1_bold.html
+sub-s637_ses-2_task-motorSelectiveStop_run-1_bold.html

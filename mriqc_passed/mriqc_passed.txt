@@ -114,3 +114,10 @@ s144_twoByTwo
 s603_twoByTwo
 s635_twoByTwo
 s639_twoByTwo
+s586_motorSelectiveStop
+s623_motorSelectiveStop
+s608_motorSelectiveStop
+s519_motorSelectiveStop
+s549_motorSelectiveStop
+s577_motorSelectiveStop
+s637_motorSelectiveStop
