@@ -27,33 +27,39 @@
         }
         
         function goToReport() {
-            const failedSelection = document.getElementById("failedDropdown").value;
-            const includedSelection = document.getElementById("includedDropdown").value;
-            const selectedFile = failedSelection || includedSelection;
+            const failed_selection = document.getElementById("mriqc_failed").value;
+            const passed_selection = document.getElementById("mriqc_passed").value;
             
-            if (selectedFile) {
-                window.location.href = `ds004636/derivatives/mriqc/${selectedFile}`;
+            if (failed_selection && passed_selection){
+                alert("Please select only either from mriqc_passed or mriqc_failed.");
+                return;
+            }
+
+            if (failed_selection) {
+                window.location.href = `ds004636/derivatives/mriqc_failed/${failed_selection}`;
+            } else if (passed_selection) {
+                window.location.href = `ds004636/derivatives/mriqc_passed/${passed_selection}`;
             } else {
                 alert("Please select a report.");
             }
         }
         
         document.addEventListener("DOMContentLoaded", function() {
-            loadOptions("mriqc_failed/mriqc_failed.txt", "failedDropdown");
-            loadOptions("all_included/all_included.txt", "includedDropdown");
+            loadOptions("mriqc_failed/mriqc_failed.txt", " mriqc_failed");
+            loadOptions("mriqc_passed/mriqc_passed.txt", "mriqc_passed");
         });
     </script>
 </head>
 <body>
     <h1>MRIQC Report Viewer</h1>
-    <p>If made selection for the failed, it will show that. If not, it will show the included report. </p>
-    <label for="failedDropdown">Failed Reports:</label>
-    <select id="failedDropdown">
+    <p>Select one report at a time to visualize. </p>
+    <label for="mriqc_failed">Failed Reports:</label>
+    <select id="mriqc_failed">
         <option value="">Select a failed report</option>
     </select>
     
-    <label for="includedDropdown">Included Reports:</label>
-    <select id="includedDropdown">
+    <label for="mriqc_passed">Included Reports:</label>
+    <select id="mriqc_passed">
         <option value="">Select an included report</option>
     </select>
     
