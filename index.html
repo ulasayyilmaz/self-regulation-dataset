@@ -6,24 +6,40 @@
     <title>MRIQC Report Viewer</title>
     <script>
         async function loadOptions(file, dropdownId) {
-            const response = await fetch(file);
-            const text = await response.text();
-            const lines = text.split('\n').filter(line => line.trim() !== '');
-            const dropdown = document.getElementById(dropdownId);
-            
-            lines.forEach(line => {
-                const match = line.match(/sub-(\w+)_ses-\d+_task-(\w+)_run-1_bold.html/);
-                if (match) {
-                    const subjectId = match[1];
-                    const taskName = match[2];
-                    const displayText = `${subjectId}_${taskName}`;
-                    
-                    const option = document.createElement("option");
-                    option.value = line;
-                    option.textContent = displayText;
-                    dropdown.appendChild(option);
+            try {
+                const response = await fetch(file);
+                if (!response.ok) {
+                console.error(`Failed to load ${file}:`, response.statusText);
+                return;
                 }
-            });
+
+
+                const text = await response.text();
+                console.log(`Loaded content from ${file}:`, text); // Debugging output
+
+
+                const lines = text.split('\n').filter(line => line.trim() !== '');
+                const dropdown = document.getElementById(dropdownId);
+                
+                lines.forEach(line => {
+                    console.log(`line: `, line);
+                    const match = line.match(/sub-(\w+)_ses-\d+_task-(\w+)_run-1_bold.html/);
+                    console.log(`match: `, match);
+                    if (match) {
+                        const subjectId = match[1];
+                        const taskName = match[2];
+                        const displayText = `${subjectId}_${taskName}`;
+                        console.log(`display text:`, displayText);
+                        
+                        const option = document.createElement("option");
+                        option.value = line;
+                        option.textContent = displayText;
+                        dropdown.appendChild(option);
+                    }
+                });
+            } catch (error){
+                console.error(`Error loading ${file}:`, error);
+            }
         }
         
         function goToReport() {
@@ -45,7 +61,7 @@
         }
         
         document.addEventListener("DOMContentLoaded", function() {
-            loadOptions("mriqc_failed/mriqc_failed.txt", " mriqc_failed");
+            loadOptions("mriqc_failed/mriqc_failed.txt", "mriqc_failed");
             loadOptions("mriqc_passed/mriqc_passed.txt", "mriqc_passed");
         });
     </script>
@@ -53,14 +69,14 @@
 <body>
     <h1>MRIQC Report Viewer</h1>
     <p>Select one report at a time to visualize. </p>
-    <label for="mriqc_failed">Failed Reports:</label>
+    <label for="mriqc_failed">MRIQC Failed Reports:</label>
     <select id="mriqc_failed">
-        <option value="">Select a failed report</option>
+        <option value="">Select a mriqc failed report</option>
     </select>
     
-    <label for="mriqc_passed">Included Reports:</label>
+    <label for="mriqc_passed">MRIQC Passed Reports:</label>
     <select id="mriqc_passed">
-        <option value="">Select an included report</option>
+        <option value="">Select an mriqc passed report</option>
     </select>
     
     <button onclick="goToReport()">Go!</button>
