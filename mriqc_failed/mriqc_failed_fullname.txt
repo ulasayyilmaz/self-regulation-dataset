@@ -18,6 +18,9 @@ sub-s445_ses-2_task-CCTHot_run-1_bold.html
 sub-s445_ses-2_task-WATT3_run-1_bold.html
 sub-s445_ses-2_task-stopSignal_run-1_bold.html
 sub-s445_ses-2_task-twoByTwo_run-1_bold.html
+sub-s445_ses-3_task-DPX_run-1_bold.html
+sub-s445_ses-3_task-discountFix_run-1_bold.html
+sub-s445_ses-3_task-motorSelectiveStop_run-1_bold.html
 sub-s553_ses-2_task-ANT_run-1_bold.html
 sub-s553_ses-2_task-CCTHot_run-1_bold.html
 sub-s553_ses-2_task-WATT3_run-1_bold.html
