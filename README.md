@@ -22,5 +22,19 @@ Pipeline of code execution:
 3. After acquiring all the necessary files, wrote the html & javascript in index.html (which is the MRIQC Report Viewer Webpage).
     * Index.html takes in data from mriqc_failed and mriqc_passed text files, creates and populates two dropdown buttons with file names, points to the path of these files once "Go!" is clicked. 
 
-4. Independent of the index.html webpage: Quality_metrics.ipynb contains code for visualization. 
+4. Independent of the index.html webpage: 
+    * Quality_metrics.ipynb contains code for visualization. 
+    * the hierarchy of files:
+        quality_metrics / plots / 
+                                subject-task /
+                                                combined_subject-task_plots / 
+                                                                                plots 
+                                                                                Subject-task.PDF (SUMMARIZES EVERYTHING)
+                                                all png plots
+
+                                task-metric / 
+                                                combined_task-metric_plots / 
+                                                                                plots 
+                                                                                task-metric.PDF (SUMMARIZES EVERYTHING)
+                                                all png plots
 
