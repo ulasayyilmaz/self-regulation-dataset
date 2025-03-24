@@ -1,7 +1,7 @@
 # self-regulation-dataset
-This repository contains html files from mriqc directory of "https://openneuro.org/datasets/ds004636/versions/1.0.4". 
-We developed a webpage that makes cross-comparison between mriqc failed and passed trials's scan visualizations easier.
-We create a software pipeline for data visualization and analysis. 
+This repository contains a little over 200 ds004636/derivatives/mriqc html file data all of which are suggested exclusions. Some of them are suggested exclusion based on failed mriqc metrics, others based on other behavioral data. The dataset is from "https://openneuro.org/datasets/ds004636/versions/1.0.4". 
+
+We developed a webpage that makes cross-comparison between mriqc failed data and mriqc passed (but other behavioral measures failed data) to trials's scan visualizations easier.
 
 Pipeline of code execution:
 

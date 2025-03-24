@@ -9,3 +9,20 @@ discountFix,3
 DPX,3
 stroop,2
 surveyMedley,0
+
+# if confirm that there was nothing wrong with the system/machine those days, 
+# i will come to the conclusion that the 5 individuals who failed 1 session fully had unique person or day specific problems
+# the mriqc fails on tasks is a good distribution. All tasks were underwent 100+ times by 103 individuals. 
+# fail rates: < 0.05
+normalized (remove 5 participants)
+
+twoByTwo,4
+WATT3,3
+ANT,2
+CCTHot,2
+stopSignal,2
+motorSelectiveStop,4
+discountFix,3
+DPX,3
+stroop,2
+surveyMedley,0
