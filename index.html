@@ -5,7 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MRIQC Report Viewer</title>
     <script>
+        window.addEventListener('message', (event) => {
+            if (event.data.type === 'goToReport_fromMetrics') {
+                console.log('Received message in index.html');
+                goToReport_fromMetrics(event.data.scanName, event.data.mriqc_status);
+            }
+        });
+        
         async function loadOptions(file, dropdownId) {
+            // assigns key:value to subj-task:fulltxt.html in dropdown (option)
             try {
                 const response = await fetch(file);
                 if (!response.ok) {
@@ -22,15 +30,14 @@
                 const dropdown = document.getElementById(dropdownId);
                 
                 lines.forEach(line => {
-                    console.log(`line: `, line);
                     const match = line.match(/sub-(\w+)_ses-\d+_task-(\w+)_run-1_bold.html/);
-                    console.log(`match: `, match);
                     if (match) {
                         const subjectId = match[1];
                         const taskName = match[2];
                         const displayText = `${subjectId}_${taskName}`;
-                        console.log(`display text:`, displayText);
                         
+                        // new option created setting key:value for subj-task: html_fullname
+                        // appends to dropdown
                         const option = document.createElement("option");
                         option.value = line;
                         option.textContent = displayText;
@@ -43,7 +50,8 @@
         }
         
         function goToReport() {
-            const failed_selection = document.getElementById("mriqc_failed").value;
+            // redirects to appropriate scan page based on click
+            const failed_selection = document.getElementById("mriqc_failed").value; 
             const passed_selection = document.getElementById("mriqc_passed").value;
             
             if (failed_selection && passed_selection){
@@ -52,15 +60,42 @@
             }
 
             if (failed_selection) {
+                // redirects to report webpage & sends displayText(sub-task) to mriqc_advanced viewer with type 'reportSelected' 
+                const displayText = document.getElementById("mriqc_failed").selectedOptions[0].textContent;
                 window.location.href = `ds004636/derivatives/mriqc_failed/${failed_selection}`;
+                parent.postMessage({ type: 'reportSelected', displayText }, '*');
+
             } else if (passed_selection) {
+                const displayText = document.getElementById("mriqc_passed").selectedOptions[0].textContent;
                 window.location.href = `ds004636/derivatives/mriqc_passed/${passed_selection}`;
+                parent.postMessage({ type: 'reportSelected', displayText }, '*');
             } else {
                 alert("Please select a report.");
             }
         }
+
+        // function goToReport_fromMetrics(scanName){
+        //     console.log("loggeddddd")
+        //     const html_fullname = document.getElementById(scanName).value; 
+        //     const fail_name = (mriqc_status === "1") ? "mriqc_failed" : "mriqc_passed";
+        //     const reportPath = `ds004636/derivatives/${fail_name}/${html_fullname}.html`;
+        //     window.location.href = reportPath;
+        // }
+
+        window.goToReport_fromMetrics = function(scanName, mriqc_status) {
+            const html_fullname = document.getElementById(scanName).value;
+            const fail_name = (mriqc_status === "1") ? "mriqc_failed" : "mriqc_passed";
+            const reportPath = `ds004636/derivatives/${fail_name}/${html_fullname}.html`;
+            window.location.href = reportPath;
+        }
         
+        // Send message when navigating back to homepage
+        // window.addEventListener('popstate', function() {
+        // parent.postMessage({ type: 'homePage' }, '*');
+        // });
+        // when webpage loads, loadOptions functions are triggered
         document.addEventListener("DOMContentLoaded", function() {
+            // assigns drop_down id's (names)
             loadOptions("metadata/mriqc_failed/mriqc_failed_fullname.txt", "mriqc_failed");
             loadOptions("metadata/mriqc_passed/mriqc_passed_fullname.txt", "mriqc_passed");
         });
