@@ -56,6 +56,7 @@
         return csvData;
     }
     async function updateMetrics(displayText) {
+      // shows table if chosen dropdown option name found in mrqic_vals.csv
       const data = await fetchCSV();
       const record = data.find(row => row.name === displayText);
       const rightPanel = document.getElementById('right-panel');
@@ -77,42 +78,22 @@
 
     async function sortByMetric(metric) {
       const data = await fetchCSV();
-      data.sort((a, b) => a[metric] - b[metric]);
+      data.sort((a, b) => a[metric] - b[metric]); // sort numerically
       const sortedData = data.slice(0, 100);
       console.log("sorting metrics");
       const sortedSection = document.getElementById('metric-sorted');
       sortedSection.innerHTML = `<h3>${metric} sorted</h3><table>` +
         sortedData.map(row => {
-        const metricValue = row[metric].toString().substring(0,4); 
+        const metricValue = row[metric].toString().substring(0,5); 
 
-        return `<tr><td><a onclick="sendToIndex('${row.name}','${row.mriqc_fail}')"><u>${row.name}</u></a></td>
+        return `<tr>
+          <td><u>${row.name}</u></td>
             <td>${metricValue}</td>
-            <td>${row.mriqc_fail}</td></tr>`}).join('') +
+            <td>${row.mriqc_fail}</td>
+            </tr>`}).join('') +
         '</table>';
-        // not sure about row.name
     }
 
-    // function sendToIndex(scanName,mriqc_status) {
-    //     const iframe = document.getElementById('indexframe');
-    //     // && iframe.contentWindow && iframe.contentWindow.goToReport_fromMetrics
-    //     if (iframe && iframe.contentWindow?.goToReport_fromMetrics) {
-    //       console.log('Function called in index.html');
-    //       iframe.contentWindow.goToReport_fromMetrics(scanName);
-    //     } else {
-    //       console.error('Function not found or iframe not loaded.');
-    //     }
-    // };
-
-    function sendToIndex(scanName, mriqc_status) {
-      const iframe = document.getElementById('indexframe');
-      if (iframe && iframe.contentWindow) {
-        console.log('Sending message to index.html');
-        iframe.contentWindow.postMessage({ type: 'goToReport_fromMetrics', scanName, mriqc_status }, '*');
-      } else {
-        console.error('iframe not loaded or missing.');
-      }
-    }
-    
     window.addEventListener('message', (event) => {
       if (event.data.type === 'reportSelected') {
         updateMetrics(event.data.displayText);

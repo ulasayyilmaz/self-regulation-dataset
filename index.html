@@ -5,13 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MRIQC Report Viewer</title>
     <script>
-        window.addEventListener('message', (event) => {
-            if (event.data.type === 'goToReport_fromMetrics') {
-                console.log('Received message in index.html');
-                goToReport_fromMetrics(event.data.scanName, event.data.mriqc_status);
-            }
-        });
-        
         async function loadOptions(file, dropdownId) {
             // assigns key:value to subj-task:fulltxt.html in dropdown (option)
             try {
@@ -21,10 +14,8 @@
                 return;
                 }
 
-
                 const text = await response.text();
                 console.log(`Loaded content from ${file}:`, text); // Debugging output
-
 
                 const lines = text.split('\n').filter(line => line.trim() !== '');
                 const dropdown = document.getElementById(dropdownId);
@@ -51,7 +42,7 @@
         
         function goToReport() {
             // redirects to appropriate scan page based on click
-            const failed_selection = document.getElementById("mriqc_failed").value; 
+            const failed_selection = document.getElementById("mriqc_failed").value; // value set by drowdown.appendChild in prev func
             const passed_selection = document.getElementById("mriqc_passed").value;
             
             if (failed_selection && passed_selection){
@@ -73,26 +64,6 @@
                 alert("Please select a report.");
             }
         }
-
-        // function goToReport_fromMetrics(scanName){
-        //     console.log("loggeddddd")
-        //     const html_fullname = document.getElementById(scanName).value; 
-        //     const fail_name = (mriqc_status === "1") ? "mriqc_failed" : "mriqc_passed";
-        //     const reportPath = `ds004636/derivatives/${fail_name}/${html_fullname}.html`;
-        //     window.location.href = reportPath;
-        // }
-
-        window.goToReport_fromMetrics = function(scanName, mriqc_status) {
-            const html_fullname = document.getElementById(scanName).value;
-            const fail_name = (mriqc_status === "1") ? "mriqc_failed" : "mriqc_passed";
-            const reportPath = `ds004636/derivatives/${fail_name}/${html_fullname}.html`;
-            window.location.href = reportPath;
-        }
-        
-        // Send message when navigating back to homepage
-        // window.addEventListener('popstate', function() {
-        // parent.postMessage({ type: 'homePage' }, '*');
-        // });
         // when webpage loads, loadOptions functions are triggered
         document.addEventListener("DOMContentLoaded", function() {
             // assigns drop_down id's (names)
