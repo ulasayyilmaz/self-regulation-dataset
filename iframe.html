@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MRIQC Report Viewer</title>
+    <script>
+        async function loadOptions(file, dropdownId) {
+            // assigns key:value to subj-task:fulltxt.html in dropdown (option)
+            try {
+                const response = await fetch(file);
+                if (!response.ok) {
+                console.error(`Failed to load ${file}:`, response.statusText);
+                return;
+                }
+
+                const text = await response.text();
+                console.log(`Loaded content from ${file}:`, text); // Debugging output
+
+                const lines = text.split('\n').filter(line => line.trim() !== '');
+                const dropdown = document.getElementById(dropdownId);
+                
+                lines.forEach(line => {
+                    const match = line.match(/sub-(\w+)_ses-\d+_task-(\w+)_run-1_bold.html/);
+                    if (match) {
+                        const subjectId = match[1];
+                        const taskName = match[2];
+                        const displayText = `${subjectId}_${taskName}`;
+                        
+                        // new option created setting key:value for subj-task: html_fullname
+                        // appends to dropdown
+                        const option = document.createElement("option");
+                        option.value = line;
+                        option.textContent = displayText;
+                        dropdown.appendChild(option);
+                    }
+                });
+            } catch (error){
+                console.error(`Error loading ${file}:`, error);
+            }
+        }
+        
+        function goToReport() {
+            // redirects to appropriate scan page based on click
+            const failed_selection = document.getElementById("mriqc_failed").value; // value set by drowdown.appendChild in prev func
+            const passed_selection = document.getElementById("mriqc_passed").value;
+            
+            if (failed_selection && passed_selection){
+                alert("Please select only either from mriqc_passed or mriqc_failed.");
+                return;
+            }
+
+            if (failed_selection) {
+                // redirects to report webpage & sends displayText(sub-task) to mriqc_advanced viewer with type 'reportSelected' 
+                const displayText = document.getElementById("mriqc_failed").selectedOptions[0].textContent;
+                window.location.href = `ds004636/derivatives/mriqc_failed/${failed_selection}`;
+                parent.postMessage({ type: 'reportSelected', displayText }, '*');
+
+            } else if (passed_selection) {
+                const displayText = document.getElementById("mriqc_passed").selectedOptions[0].textContent;
+                window.location.href = `ds004636/derivatives/mriqc_passed/${passed_selection}`;
+                parent.postMessage({ type: 'reportSelected', displayText }, '*');
+            } else {
+                alert("Please select a report.");
+            }
+        }
+        // when webpage loads, loadOptions functions are triggered
+        document.addEventListener("DOMContentLoaded", function() {
+            // assigns drop_down id's (names)
+            loadOptions("metadata/mriqc_failed/mriqc_failed_fullname.txt", "mriqc_failed");
+            loadOptions("metadata/mriqc_passed/mriqc_passed_fullname.txt", "mriqc_passed");
+        });
+
+        document.addEventListener('message',(event)=> {
+            console.log("open_file event listener works")
+            if (event.data.type === 'open_file') {
+                const row_info=event.data.row_info
+                const mriqc_fail = row_info.substring(row_info.length-1)
+                const row_name = row_info.substring(0,row_info.length-2)
+                if (mriqc_fail === "1") {
+                    window.location.href = `ds004636/derivatives/mriqc_failed/${row_name}`
+                }
+                else {
+                    window.location.href = `ds004636/derivatives/mriqc_passed/${row_name}`
+                }
+            } 
+        })
+    </script>
+</head>
+<body>
+    <h1>MRIQC Report Viewer</h1>
+    <p>Select one report at a time to visualize. </p>
+    <label for="mriqc_failed">MRIQC Failed Reports:</label>
+    <select id="mriqc_failed">
+        <option value="">Select a mriqc failed report</option>
+    </select>
+    
+    <label for="mriqc_passed">MRIQC Passed Reports:</label>
+    <select id="mriqc_passed">
+        <option value="">Select an mriqc passed report</option>
+    </select>
+    
+    <button onclick="goToReport()">Go!</button>
+</body>
+</html>
