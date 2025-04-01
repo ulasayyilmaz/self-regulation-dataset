@@ -5,6 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MRIQC Report Viewer</title>
     <script>
+        
+        function to_full_htmlname(shortname,failed){
+            const [subjectId, taskName] = shortname.split('_');
+            const files_list = failed
+                ? 'metadata/mriqc_failed/mriqc_failed_fullname.txt'
+                : 'metadata/mriqc_failed/mriqc_passed_fullname.txt';
+
+            try{    
+                const response = fetch(files_list);
+                const text = response.text();
+                const lines = text.split('\n').filter(line => line.trim() !== '');
+                for (const line of lines) {
+                    const match = line.match(new RegExp(`sub-${subjectId}_ses-\\d+_task-${taskName}_run-1_bold\\.html`));
+                    if (match) {
+                        return line.trim(); // Return the matching full HTML name
+                    }
+                }
+                throw new Error('No matching file found');
+            }catch (error){
+                console.error(`Error loading ${file}:`, error);
+            }
+        }
+
         async function loadOptions(file, dropdownId) {
             // assigns key:value to subj-task:fulltxt.html in dropdown (option)
             try {
@@ -66,25 +89,28 @@
         }
         // when webpage loads, loadOptions functions are triggered
         document.addEventListener("DOMContentLoaded", function() {
+            window.addEventListener('message', (event) => {
+                if (event.data.type === 'open_file') {
+                    console.log("in_iframe_message_received")
+                    const mriqc_fail = event.data.row_info.substring(row_info.length-1);
+                    const row_name = event.data.row_info.substring(0,row_info.length-2);
+                    const row_full_name=to_full_htmlname(row_name);
+                    if (mriqc_fail === "1") {
+                        window.location.href = `ds004636/derivatives/mriqc_failed/${row_full_name}`
+                    }
+                    else{
+                        window.location.href = `ds004636/derivatives/mriqc_passed/${row_full_name}`
+                    }
+                }
+            })
+            
             // assigns drop_down id's (names)
             loadOptions("metadata/mriqc_failed/mriqc_failed_fullname.txt", "mriqc_failed");
             loadOptions("metadata/mriqc_passed/mriqc_passed_fullname.txt", "mriqc_passed");
+        
         });
 
-        document.addEventListener('message',(event)=> {
-            console.log("open_file event listener works")
-            if (event.data.type === 'open_file') {
-                const row_info=event.data.row_info
-                const mriqc_fail = row_info.substring(row_info.length-1)
-                const row_name = row_info.substring(0,row_info.length-2)
-                if (mriqc_fail === "1") {
-                    window.location.href = `ds004636/derivatives/mriqc_failed/${row_name}`
-                }
-                else {
-                    window.location.href = `ds004636/derivatives/mriqc_passed/${row_name}`
-                }
-            } 
-        })
+        
     </script>
 </head>
 <body>

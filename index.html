@@ -36,77 +36,94 @@
     }
   </style>
   <script>
-    async function fetchCSV() {
-        const response = await fetch('metadata/mriqc_vals.csv');
-        const data = await response.text();
-        const rows = data.split('\n').slice(1);
-        const csvData = rows.map(row => {
-        const values = row.split(',');
-        return {
-            name: values[0],
-            gsr_y: parseFloat(values[1]),
-            dvars_vstd: parseFloat(values[2]),
-            fd_mean: parseFloat(values[3]),
-            fber: parseFloat(values[4]),
-            tsnr: parseFloat(values[5]),
-            snr: parseFloat(values[6]),
-            mriqc_fail: values[7]
-        };
-        });
-        return csvData;
-    }
-    async function updateMetrics(displayText) {
-      // shows table if chosen dropdown option name found in mrqic_vals.csv
-      const data = await fetchCSV();
-      const record = data.find(row => row.name === displayText);
-      const rightPanel = document.getElementById('right-panel');
-
-      if (record) {
-        console.log("updating metrics"); // Debugging output
-        rightPanel.innerHTML = `<h2>${record.name}</h2>` +
-          '<h3>mriqc_vals</h3><table>' +
-          Object.entries(record).slice(1).map(([key, value]) => `
-            <tr>
-              <td><a onclick="sortByMetric('${key}')"><u>${key}</u></a></td>
-              <td>${value}</td>
-            </tr>`).join('') +
-          '</table><div id="metric-sorted"><h3>Metric Sorted</h3></div>';
-      } else {
-        rightPanel.innerHTML = '<h1>MRIQC Values</h1><p>No data available for this report.</p>';
+    document.addEventListener("DOMContentLoaded", function() {
+      var hello="hello";
+      const iframe = document.getElementById("iframe");
+      if (iframe) {
+        iframe.onload = function() {
+          var row_info="hey";
+          iframe.contentWindow.postMessage({ type: 'open_file', row_info }, '*');
+          
+          window.open_file=function(row_info){
+            console.log("before_iframe_load_received");
+            iframe.contentWindow.postMessage({ type: 'open_file', row_info }, '*');
+            console.log(`open_file works with row_info: ${row_info}`);
+          }
+        }
       }
-    }
 
-    async function sortByMetric(metric) {
-      const data = await fetchCSV();
-      data.sort((a, b) => a[metric] - b[metric]); // sort numerically
-      const sortedData = data.slice(0, 100);
-      console.log("sorting metrics");
-      const sortedSection = document.getElementById('metric-sorted');
-      sortedSection.innerHTML = `<h3>${metric} sorted</h3><table>` +
-        sortedData.map(row => {
-        const metricValue = row[metric].toString().substring(0,5); 
-
-        return `<tr>
-          <td><a onclick="open_file('${row.name},${row.mriqc_fail}')"><u>${row.name}</u></a></td>
-            <td>${metricValue}</td>
-            <td>${row.mriqc_fail}</td>
-            </tr>`}).join('') +
-        '</table>';
-    }
-
-    function open_file(row_info){
-      document.getElementById("iframe").contentWindow.postMessage({ type: 'open_file', row_info}, '*')
-      console.log(`open_file works with row_info: ${row_info}`)
-    }
-
-    window.addEventListener('message', (event) => {
-      if (event.data.type === 'reportSelected') {
-        updateMetrics(event.data.displayText);
-      } else if (event.data.type === 'homePage') {
-        document.getElementById('right-panel').innerHTML = '<h1>Features</h1><p>.</p>';
-      }
+      window.addEventListener('message', (event) => {
+        if (event.data.type === 'reportSelected') {
+          console.log("message received: report selected")
+          updateMetrics(event.data.displayText);
+        } else if (event.data.type === 'homePage') {
+          document.getElementById('right-panel').innerHTML = '<h1>Features</h1><p>.</p>';
+        }
+      });
     });
 
+    async function fetchCSV() {
+              const response = await fetch('metadata/mriqc_vals.csv');
+              const data = await response.text();
+              const rows = data.split('\n').slice(1);
+              const csvData = rows.map(row => {
+              const values = row.split(',');
+              return {
+                  name: values[0],
+                  gsr_y: parseFloat(values[1]),
+                  dvars_vstd: parseFloat(values[2]),
+                  fd_mean: parseFloat(values[3]),
+                  fber: parseFloat(values[4]),
+                  tsnr: parseFloat(values[5]),
+                  snr: parseFloat(values[6]),
+                  mriqc_fail: values[7]
+              };
+              });
+              return csvData;
+          }
+
+    async function sortByMetric(metric) {
+            const data = await fetchCSV();
+            data.sort((a, b) => a[metric] - b[metric]); // sort numerically
+            const sortedData = data.slice(0, 100);
+            console.log("sorting metrics");
+            const sortedSection = document.getElementById('metric-sorted');
+            sortedSection.innerHTML = `<h3>${metric} sorted</h3><table>` +
+              sortedData.map(row => {
+              const metricValue = row[metric].toString().substring(0,5); 
+
+              return `<tr>
+                <td><a onclick="open_file('${row.name},${row.mriqc_fail}')"><u>${row.name}</u></a></td>
+                  <td>${metricValue}</td>
+                  <td>${row.mriqc_fail}</td>
+                  </tr>`}).join('') +
+              '</table>';
+          }
+
+    async function updateMetrics(displayText) {
+            // shows table if chosen dropdown option name found in mrqic_vals.csv
+            const data = await fetchCSV();
+            const record = data.find(row => row.name === displayText);
+            const rightPanel = document.getElementById('right-panel');
+
+            if (record) {
+              console.log("updating metrics"); // Debugging output
+              sortByMetric("gsr_y");
+              console.log("called sortByMetric manually");
+              
+              rightPanel.innerHTML = `<h2>${record.name}</h2>` +
+                '<h3>mriqc_vals</h3><table>' +
+                Object.entries(record).slice(1).map(([key, value]) => `
+                  <tr>
+                    <td><a onclick="sortByMetric('${key}')"><u>${key}</u></a></td>
+                    <td>${value}</td>
+                  </tr>`).join('') +
+                '</table><div id="metric-sorted"><h3>Metric Sorted</h3></div>';
+              } else {
+                rightPanel.innerHTML = '<h1>MRIQC Values</h1><p>No data available for this report.</p>';
+              }
+            }
+          
   </script>
   
 </head>
