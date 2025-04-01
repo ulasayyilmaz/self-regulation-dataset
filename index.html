@@ -37,30 +37,74 @@
   </style>
   <script>
     document.addEventListener("DOMContentLoaded", function() {
-      var hello="hello";
+      loadOptions("metadata/mriqc_failed/mriqc_failed_fullname.txt", "mriqc_failed");
+      loadOptions("metadata/mriqc_passed/mriqc_passed_fullname.txt", "mriqc_passed");
+      
       const iframe = document.getElementById("iframe");
       if (iframe) {
         iframe.onload = function() {
-          var row_info="hey";
-          iframe.contentWindow.postMessage({ type: 'open_file', row_info }, '*');
-          
-          window.open_file=function(row_info){
-            console.log("before_iframe_load_received");
-            iframe.contentWindow.postMessage({ type: 'open_file', row_info }, '*');
-            console.log(`open_file works with row_info: ${row_info}`);
+          window.goToReport=function(){
+              // redirects to appropriate scan page based on click
+              const failed_selection = document.getElementById("mriqc_failed").value; // value set by drowdown.appendChild in prev func
+              const passed_selection = document.getElementById("mriqc_passed").value;
+              
+              if (failed_selection && passed_selection){
+                  alert("Please select only either from mriqc_passed or mriqc_failed.");
+                  return;
+              }
+              if (failed_selection) {
+                  // redirects to report webpage & sends displayText(sub-task) to mriqc_advanced viewer with type 'reportSelected' 
+                  iframe.src= `ds004636/derivatives/mriqc_failed/${failed_selection}`;
+                  displayText=document.getElementById("mriqc_failed").selectedOptions[0].textContent;;
+                  updateMetrics(displayText)
+              } else if (passed_selection) {
+                  iframe.src = `ds004636/derivatives/mriqc_passed/${passed_selection}`;
+                  displayText=document.getElementById("mriqc_passed").selectedOptions[0].textContent;;
+                  updateMetrics(displayText)
+              } else {
+                  alert("Please select a report.");
+              }
           }
         }
-      }
 
-      window.addEventListener('message', (event) => {
-        if (event.data.type === 'reportSelected') {
-          console.log("message received: report selected")
-          updateMetrics(event.data.displayText);
-        } else if (event.data.type === 'homePage') {
-          document.getElementById('right-panel').innerHTML = '<h1>Features</h1><p>.</p>';
-        }
-      });
+
+      }
     });
+
+    async function loadOptions(file, dropdownId) {
+      // assigns key:value to subj-task:fulltxt.html in dropdown (option)
+      try {
+        const response = await fetch(file);
+        if (!response.ok) {
+        console.error(`Failed to load ${file}:`, response.statusText);
+        return;
+        }
+
+        const text = await response.text();
+        console.log(`Loaded content from ${file}:`, text); // Debugging output
+
+        const lines = text.split('\n').filter(line => line.trim() !== '');
+        const dropdown = document.getElementById(dropdownId);
+        
+        lines.forEach(line => {
+            const match = line.match(/sub-(\w+)_ses-\d+_task-(\w+)_run-1_bold.html/);
+            if (match) {
+                const subjectId = match[1];
+                const taskName = match[2];
+                const displayText = `${subjectId}_${taskName}`;
+                
+                // new option created setting key:value for subj-task: html_fullname
+                // appends to dropdown
+                const option = document.createElement("option");
+                option.value = line;
+                option.textContent = displayText;
+                dropdown.appendChild(option);
+            }
+          });
+          } catch (error){
+              console.error(`Error loading ${file}:`, error);
+          }
+        }
 
     async function fetchCSV() {
               const response = await fetch('metadata/mriqc_vals.csv');
@@ -81,48 +125,84 @@
               });
               return csvData;
           }
+    
+    async function to_full_htmlname(shortname,failed){
+        const [subjectId, taskName] = shortname.split('_');
+        let files_list;
+        if(failed=="1"){files_list = 'metadata/mriqc_failed/mriqc_failed_fullname.txt';}
+        else{files_list = 'metadata/mriqc_failed/mriqc_passed_fullname.txt';}
+        
+        try{    
+            console.log(files_list)
+            const response = await fetch(files_list);
+            const text = await response.text();
 
+            // const lines = text.split('\n').filter(line => line.trim() !== '');
+            // for (const line of lines) {
+            //     const match = line.match(new RegExp(`sub-${subjectId}_ses-\\d+_task-${taskName}_run-1_bold\\.html`));
+            //     if (match) {
+            //         return line.trim(); // Return the matching full HTML name
+            //     }
+            // }
+            // throw new Error('No matching file found');
+        }catch (error){
+            console.error(`Error loading ${files_list}:`, error);
+        }
+    }
+
+    function open_file(row_info){
+        const mriqc_fail = row_info.substring(row_info.length-1);
+        const row_name = row_info.substring(0,row_info.length-2);
+        console.log(row_name)
+        const row_full_name=to_full_htmlname(row_name, mriqc_fail);
+        if (mriqc_fail === "1") {
+            iframe.src = `ds004636/derivatives/mriqc_failed/${row_full_name}`;
+        }
+        else{
+            iframe.src = `ds004636/derivatives/mriqc_passed/${row_full_name}`;
+        }
+    }
+       
     async function sortByMetric(metric) {
-            const data = await fetchCSV();
-            data.sort((a, b) => a[metric] - b[metric]); // sort numerically
-            const sortedData = data.slice(0, 100);
-            console.log("sorting metrics");
-            const sortedSection = document.getElementById('metric-sorted');
-            sortedSection.innerHTML = `<h3>${metric} sorted</h3><table>` +
-              sortedData.map(row => {
-              const metricValue = row[metric].toString().substring(0,5); 
+        const data = await fetchCSV();
+        data.sort((a, b) => a[metric] - b[metric]); // sort numerically
+        const sortedData = data.slice(0, 100);
+        
+        console.log("sorting metrics");
+        const sortedSection = document.getElementById('metric-sorted');
+        sortedSection.innerHTML = `<h3>${metric} sorted</h3><table>` +
+          sortedData.map(row => {
+          const metricValue = row[metric].toString().substring(0,5); 
 
-              return `<tr>
-                <td><a onclick="open_file('${row.name},${row.mriqc_fail}')"><u>${row.name}</u></a></td>
-                  <td>${metricValue}</td>
-                  <td>${row.mriqc_fail}</td>
-                  </tr>`}).join('') +
-              '</table>';
-          }
+          return `<tr>
+            <td><a onclick="open_file('${row.name},${row.mriqc_fail}')"><u>${row.name}</u></a></td>
+              <td>${metricValue}</td>
+              <td>${row.mriqc_fail}</td>
+              </tr>`}).join('') +
+          '</table>';
+      }
 
     async function updateMetrics(displayText) {
-            // shows table if chosen dropdown option name found in mrqic_vals.csv
-            const data = await fetchCSV();
-            const record = data.find(row => row.name === displayText);
-            const rightPanel = document.getElementById('right-panel');
+        // shows table if chosen dropdown option name found in mrqic_vals.csv
+        const data = await fetchCSV();
+        console.log(displayText)
+        const record = data.find(row => row.name === displayText);
+        const rightPanel = document.getElementById('right-panel');
+        console.log("updating metric vals");
 
-            if (record) {
-              console.log("updating metrics"); // Debugging output
-              sortByMetric("gsr_y");
-              console.log("called sortByMetric manually");
-              
-              rightPanel.innerHTML = `<h2>${record.name}</h2>` +
-                '<h3>mriqc_vals</h3><table>' +
-                Object.entries(record).slice(1).map(([key, value]) => `
-                  <tr>
-                    <td><a onclick="sortByMetric('${key}')"><u>${key}</u></a></td>
-                    <td>${value}</td>
-                  </tr>`).join('') +
-                '</table><div id="metric-sorted"><h3>Metric Sorted</h3></div>';
-              } else {
-                rightPanel.innerHTML = '<h1>MRIQC Values</h1><p>No data available for this report.</p>';
-              }
-            }
+        if (record) {
+          rightPanel.innerHTML = `<h2>${record.name}</h2>` +
+            '<h3>mriqc_vals</h3><table>' +
+            Object.entries(record).slice(1).map(([key, value]) => `
+              <tr>
+                <td><a onclick="sortByMetric('${key}')"><u>${key}</u></a></td>
+                <td>${value}</td>
+              </tr>`).join('') +
+            '</table><div id="metric-sorted"><h3>Metric Sorted</h3></div>';
+          } else {
+            rightPanel.innerHTML = '<h1>MRIQC Values</h1><p>No data available for this report.</p>';
+          }
+        }
           
   </script>
   
@@ -135,8 +215,20 @@
 
   <!-- Right side: Space for additional features -->
   <div id="right-panel">
-    <h1>Features</h1>
-    <p>.</p>
+    <h1>MRIQC Report Viewer</h1>
+    <p>Select one report at a time to visualize. </p>
+    
+    <label for="mriqc_failed">MRIQC Failed Reports:</label>
+    <select id="mriqc_failed">
+        <option value="">Select a mriqc failed report</option>
+    </select>
+    
+    <label for="mriqc_passed">MRIQC Passed Reports:</label>
+    <select id="mriqc_passed">
+        <option value="">Select an mriqc passed report</option>
+    </select>
+    
+    <button onclick="goToReport()">Go!</button>
   </div>
 </body>
 </html>
