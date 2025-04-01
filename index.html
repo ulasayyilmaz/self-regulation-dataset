@@ -71,18 +71,25 @@
       }
     });
 
-    async function loadOptions(file, dropdownId) {
-      // assigns key:value to subj-task:fulltxt.html in dropdown (option)
+    async function load_text(file){
       try {
         const response = await fetch(file);
         if (!response.ok) {
         console.error(`Failed to load ${file}:`, response.statusText);
         return;
         }
-
         const text = await response.text();
-        console.log(`Loaded content from ${file}:`, text); // Debugging output
+        return text;
+      } catch (error){
+              console.error(`Error loading ${file}:`, error);
+      }
+    }
 
+    async function loadOptions(file, dropdownId) {
+      // assigns key:value to subj-task:fulltxt.html in dropdown (option)
+      try{
+        const text=await load_text(file)
+        console.log(`Loaded content from ${file}:`, text); // Debugging output
         const lines = text.split('\n').filter(line => line.trim() !== '');
         const dropdown = document.getElementById(dropdownId);
         
@@ -101,10 +108,10 @@
                 dropdown.appendChild(option);
             }
           });
-          } catch (error){
-              console.error(`Error loading ${file}:`, error);
-          }
+        } catch (error){
+          console.error(`Error loading ${file}:`, error);
         }
+      }
 
     async function fetchCSV() {
               const response = await fetch('metadata/mriqc_vals.csv');
@@ -133,44 +140,51 @@
         else{files_list = 'metadata/mriqc_failed/mriqc_passed_fullname.txt';}
         
         try{    
-            console.log(files_list)
-            const response = await fetch(files_list);
-            const text = await response.text();
-
-            // const lines = text.split('\n').filter(line => line.trim() !== '');
-            // for (const line of lines) {
-            //     const match = line.match(new RegExp(`sub-${subjectId}_ses-\\d+_task-${taskName}_run-1_bold\\.html`));
-            //     if (match) {
-            //         return line.trim(); // Return the matching full HTML name
-            //     }
-            // }
-            // throw new Error('No matching file found');
+            const text= await load_text(files_list)
+            const lines = text.split('\n').filter(line => line.trim() !== '');
+            for (const line of lines) {
+                const match = line.match(new RegExp(`sub-${subjectId}_ses-\\d+_task-${taskName}_run-1_bold\\.html`));
+                if (match) {
+                    return line.trim(); // Return the matching full HTML name
+                }
+            }
+            throw new Error('No matching file found');
         }catch (error){
             console.error(`Error loading ${files_list}:`, error);
         }
     }
 
-    function open_file(row_info){
+    async function open_file(row_info){
         const mriqc_fail = row_info.substring(row_info.length-1);
         const row_name = row_info.substring(0,row_info.length-2);
         console.log(row_name)
-        const row_full_name=to_full_htmlname(row_name, mriqc_fail);
+        const row_full_name=await to_full_htmlname(row_name, mriqc_fail);
         if (mriqc_fail === "1") {
             iframe.src = `ds004636/derivatives/mriqc_failed/${row_full_name}`;
+            updateMetrics(row_name);
+
         }
         else{
             iframe.src = `ds004636/derivatives/mriqc_passed/${row_full_name}`;
+            updateMetrics(row_name);
         }
     }
-       
+      
+    const metrics_descending_sort = ["gsr_y", "fd_mean", "dvars_std"];
+    
     async function sortByMetric(metric) {
-        const data = await fetchCSV();
-        data.sort((a, b) => a[metric] - b[metric]); // sort numerically
+        let data = await fetchCSV();
+        data.sort((a, b) =>
+        metrics_descending_sort.includes(metric)
+            ? b[metric] - a[metric]  // Descending
+            : a[metric] - b[metric]);
+
+        const sort_type = metrics_descending_sort.includes(metric) ? "descending" : "ascending";
         const sortedData = data.slice(0, 100);
         
         console.log("sorting metrics");
         const sortedSection = document.getElementById('metric-sorted');
-        sortedSection.innerHTML = `<h3>${metric} sorted</h3><table>` +
+        sortedSection.innerHTML = `<h3>${metric} sorted ${sort_type}</h3><table>` +
           sortedData.map(row => {
           const metricValue = row[metric].toString().substring(0,5); 
 
@@ -185,7 +199,6 @@
     async function updateMetrics(displayText) {
         // shows table if chosen dropdown option name found in mrqic_vals.csv
         const data = await fetchCSV();
-        console.log(displayText)
         const record = data.find(row => row.name === displayText);
         const rightPanel = document.getElementById('right-panel');
         console.log("updating metric vals");
