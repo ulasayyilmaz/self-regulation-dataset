@@ -36,6 +36,7 @@
     }
   </style>
   <script>
+
     document.addEventListener("DOMContentLoaded", function() {
       loadOptions("metadata/mriqc_failed/mriqc_failed_fullname.txt", "mriqc_failed");
       loadOptions("metadata/mriqc_passed/mriqc_passed_fullname.txt", "mriqc_passed");
@@ -154,19 +155,18 @@
         }
     }
 
-    async function open_file(row_info){
-        const mriqc_fail = row_info.substring(row_info.length-1);
-        const row_name = row_info.substring(0,row_info.length-2);
-        console.log(row_name)
+    async function open_file(row_name,mriqc_fail,metric){
         const row_full_name=await to_full_htmlname(row_name, mriqc_fail);
         if (mriqc_fail === "1") {
             iframe.src = `ds004636/derivatives/mriqc_failed/${row_full_name}`;
             updateMetrics(row_name);
+            sortByMetric(metric);
 
         }
         else{
             iframe.src = `ds004636/derivatives/mriqc_passed/${row_full_name}`;
             updateMetrics(row_name);
+            sortByMetric(metric);
         }
     }
       
@@ -189,7 +189,7 @@
           const metricValue = row[metric].toString().substring(0,5); 
 
           return `<tr>
-            <td><a onclick="open_file('${row.name},${row.mriqc_fail}')"><u>${row.name}</u></a></td>
+            <td><a onclick="open_file('${row.name}','${row.mriqc_fail}','${metric}')"><u>${row.name}</u></a></td>
               <td>${metricValue}</td>
               <td>${row.mriqc_fail}</td>
               </tr>`}).join('') +
@@ -235,12 +235,13 @@
     <select id="mriqc_failed">
         <option value="">Select a mriqc failed report</option>
     </select>
+    <br><br>
     
     <label for="mriqc_passed">MRIQC Passed Reports:</label>
     <select id="mriqc_passed">
         <option value="">Select an mriqc passed report</option>
     </select>
-    
+    <br><br>
     <button onclick="goToReport()">Go!</button>
   </div>
 </body>
