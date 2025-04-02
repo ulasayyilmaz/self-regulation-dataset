@@ -138,7 +138,7 @@
         const [subjectId, taskName] = shortname.split('_');
         let files_list;
         if(failed=="1"){files_list = 'metadata/mriqc_failed/mriqc_failed_fullname.txt';}
-        else{files_list = 'metadata/mriqc_failed/mriqc_passed_fullname.txt';}
+        else{files_list = 'metadata/mriqc_passed/mriqc_passed_fullname.txt';}
         
         try{    
             const text= await load_text(files_list)
@@ -157,7 +157,8 @@
 
     async function open_file(row_name,mriqc_fail,metric){
         const row_full_name=await to_full_htmlname(row_name, mriqc_fail);
-        if (mriqc_fail === "1") {
+        console.log(row_full_name)
+        if (mriqc_fail == "1") {
             iframe.src = `ds004636/derivatives/mriqc_failed/${row_full_name}`;
             updateMetrics(row_name);
             sortByMetric(metric);
